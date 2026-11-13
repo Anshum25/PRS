@@ -9,6 +9,7 @@ sys.path.insert(0, str(BASE_DIR))
 import config
 from trend_fetcher import get_current_tech_trends
 from generator import generate_post_recommendations
+from telegram_sender import send_telegram_message
 from whatsapp_sender import send_whatsapp_message
 
 def run_daily_automation():
@@ -36,8 +37,8 @@ def run_daily_automation():
         f.write(draft_entry)
     print(f"Saved to {config.DRAFTS_FILE}")
 
-    # 4. Format for WhatsApp
-    whatsapp_message = f"""🔥 *Today's X Posts for @TheAnshumDev*
+    # 4. Format Message
+    message = f"""🔥 *Today's X Posts for @TheAnshumDev*
 📅 {datetime.now().strftime('%d %b %Y')}
 📌 *Trend*: {top_trend}
 
@@ -46,8 +47,12 @@ def run_daily_automation():
 👉 *Pick one, make any quick tweak, and post on X!*
 """
     
-    # 5. Send via WhatsApp
-    send_whatsapp_message(whatsapp_message)
+    # 5. Send via Telegram first (recommended & instant)
+    telegram_ok = send_telegram_message(message)
+    if not telegram_ok:
+        print("Telegram not delivered, checking WhatsApp...")
+        send_whatsapp_message(message)
+        
     print("Daily job complete! 🎉")
 
 if __name__ == "__main__":
